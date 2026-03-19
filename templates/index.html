@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DASHBOARD MIKE SERVEUR</title>
+    <style>
+        body {
+            background-color: #000000;
+            background-image: url('https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExamJjYWcxYnh3c2t5Zm42ZDFiNGx2ZTRtNW12ZHl0cnV4c2Jwc2kycyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/RHIKETUlUINYvV7CAO/giphy.gif');
+            background-size: cover;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            color: #00FF00;
+            font-family: "Comic Sans MS", "Courier New", cursive;
+            text-align: center;
+            cursor: crosshair;
+            margin: 0;
+            overflow: hidden;
+            transition: background-color 0.1s;
+        }
+
+        .main-table {
+            border: 5px outset #808080;
+            background-color: #C0C0C0;
+            color: #000;
+            margin: 50px auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 800px;
+            position: relative;
+            z-index: 10;
+        }
+
+        h1 {
+            background: linear-gradient(to right, #000080, #0080FF);
+            color: white;
+            padding: 5px;
+            font-size: 1.5em;
+            text-transform: uppercase;
+            border: 2px inset #fff;
+        }
+
+        .temp-display {
+            font-size: 50px;
+            font-weight: bold;
+            color: #FF0000;
+            text-shadow: 2px 2px #FFFF00;
+            margin: 20px 0;
+        }
+
+        marquee {
+            border: 2px ridge #fff;
+            background-color: #000;
+            color: #00FF00;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .blink { animation: blinker 1s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0; } }
+
+        @keyframes glisseMeteorite {
+            from { right: -150px; }
+            to { right: 110%; }
+        }
+
+        .anime-meteorite {
+            display: block !important;
+            animation: glisseMeteorite 8s linear forwards;
+        }
+    </style>
+</head>
+<body onclick="unlockAudio()">
+
+    <div class="main-table">
+        <h1>
+            <span class="blink">!!!</span> 
+            Température du serveur MikePI
+            <span class="blink">!!!</span>
+        </h1>
+
+        <div class="temp-display">
+            <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExZDYxN3Bsd3dsYjZ4emNiOHJydXNleHY0bWFjYzYxbGlxcnhudml5MCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/cNVU37JHR62OBHGcgJ/giphy.gif" width="80" height="80">
+            {{ temperature }}°C
+            <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExZDYxN3Bsd3dsYjZ4emNiOHJydXNleHY0bWFjYzYxbGlxcnhudml5MCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/cNVU37JHR62OBHGcgJ/giphy.gif" width="80" height="80">
+        </div>
+
+        <p style="font-weight: bold;">STATUT : {{ state }}</p>
+        <p style="font-weight: bold;">Date du relevé : {{ now }}</p>
+        
+        <marquee scrollamount="10">MIKE SERVEUR, MIKE PI AINSI QUE FORTIMIKE SONT LÀ POUR VOUS SERVIR...</marquee>
+    </div>
+
+    <p style="color: white;">Visiteur n° : <strong>{{ random_number }}</strong></p>
+
+    <audio id="sndExplosion" preload="auto"></audio>
+
+    <img id="meteorite" src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExbTEydTB6cG00YzJ5dW5qMWJ4YjcxbmR0cDNnajhjMW15Y3U5aGxzaiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/zJW6vKLhqvJ2NssmG1/giphy.gif"
+        style="position: fixed; right: -150px; width: 100px; cursor: crosshair; z-index: 9999; display: none;" 
+        onclick="detruireMeteorite(event)">
+
+    <script>
+        const listeSons = {{ sounds | tojson }};
+        const audioPlayer = document.getElementById('sndExplosion');
+        let audioUnlocked = false;
+
+        function unlockAudio() {
+            if (!audioUnlocked) {
+                audioPlayer.play().catch(() => {});
+                audioUnlocked = true;
+                console.log("Audio débloqué !");
+            }
+        }
+
+        // --- LA CORRECTION EST ICI ---
+        function choisirSonAleatoire() {
+            if (listeSons.length > 0) {
+                const index = Math.floor(Math.random() * listeSons.length);
+                const fichier = "/static/sound/" + listeSons[index];
+                
+                // On change la source AVANT que la météorite n'arrive
+                audioPlayer.src = fichier;
+                audioPlayer.load(); 
+                console.log("Prochain son chargé en buffer : " + fichier);
+            }
+        }
+
+        function lancerMeteorite() {
+            const met = document.getElementById('meteorite');
+            
+            // On prépare le son IMMEDIATEMENT quand la météorite part
+            choisirSonAleatoire();
+
+            met.style.display = 'none';
+            met.classList.remove('anime-meteorite');
+            void met.offsetWidth; 
+
+            const hauteurAleatoire = Math.floor(Math.random() * 70) + 10;
+            met.style.top = hauteurAleatoire + "%";
+            met.style.display = 'block';
+            met.classList.add('anime-meteorite');
+
+            setTimeout(lancerMeteorite, 20000); 
+        }
+
+        function detruireMeteorite(e) {
+            e.stopPropagation(); 
+            
+            // Le son est déjà chargé, on le joue instantanément
+            audioPlayer.currentTime = 0;
+            audioPlayer.play().then(() => {
+                // Flash seulement si le son a réussi
+                document.body.style.backgroundColor = "white";
+                setTimeout(() => { document.body.style.backgroundColor = "black"; }, 100);
+            }).catch(err => console.log("Erreur play:", err));
+
+            document.getElementById('meteorite').style.display = 'none';
+        }
+
+        // Lancement initial
+        setTimeout(lancerMeteorite, 3000);
+    </script>
+</body>
+</html>
